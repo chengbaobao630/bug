@@ -1,4 +1,4 @@
-package cc.hme.taobao;
+package cc.home.taobao;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document
 public class Item {
 
+    private String type;
 
     private String id;
 
@@ -32,6 +33,14 @@ public class Item {
     private String userId;
 
     private String nickName;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public String getViewFee() {
         return viewFee;
@@ -133,9 +142,9 @@ public class Item {
     private String dueWithTaoBaoTag(String ori) {
         ori = ori.replaceAll("\\\\","")
                 .replaceAll("\"","");
-        return ori == null ? "" : ori;
+        return ori == null || "null".equalsIgnoreCase(ori)
+                ? "" : ori;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -144,48 +153,50 @@ public class Item {
 
         Item item = (Item) o;
 
-        if (getId() != null ? !getId().equals(item.getId()) : item.getId() != null) return false;
-        if (getTitle() != null ? !getTitle().equals(item.getTitle()) : item.getTitle() != null) return false;
-        if (getRawTitle() != null ? !getRawTitle().equals(item.getRawTitle()) : item.getRawTitle() != null)
-            return false;
-        if (getItemIoc() != null ? !getItemIoc().equals(item.getItemIoc()) : item.getItemIoc() != null) return false;
-        if (getPicUrl() != null ? !getPicUrl().equals(item.getPicUrl()) : item.getPicUrl() != null) return false;
-        if (getCuPrice() != null ? !getCuPrice().equals(item.getCuPrice()) : item.getCuPrice() != null) return false;
-        if (getOriPrice() != null ? !getOriPrice().equals(item.getOriPrice()) : item.getOriPrice() != null)
-            return false;
-        if (getSoldNum() != null ? !getSoldNum().equals(item.getSoldNum()) : item.getSoldNum() != null) return false;
-        if (getDetailUrl() != null ? !getDetailUrl().equals(item.getDetailUrl()) : item.getDetailUrl() != null)
-            return false;
-        if (getUserId() != null ? !getUserId().equals(item.getUserId()) : item.getUserId() != null) return false;
-        return getNickName() != null ? getNickName().equals(item.getNickName()) : item.getNickName() == null;
+        if (type != null ? !type.equals(item.type) : item.type != null) return false;
+        if (!id.equals(item.id)) return false;
+        if (title != null ? !title.equals(item.title) : item.title != null) return false;
+        if (rawTitle != null ? !rawTitle.equals(item.rawTitle) : item.rawTitle != null) return false;
+        if (itemIoc != null ? !itemIoc.equals(item.itemIoc) : item.itemIoc != null) return false;
+        if (picUrl != null ? !picUrl.equals(item.picUrl) : item.picUrl != null) return false;
+        if (cuPrice != null ? !cuPrice.equals(item.cuPrice) : item.cuPrice != null) return false;
+        if (viewFee != null ? !viewFee.equals(item.viewFee) : item.viewFee != null) return false;
+        if (oriPrice != null ? !oriPrice.equals(item.oriPrice) : item.oriPrice != null) return false;
+        if (soldNum != null ? !soldNum.equals(item.soldNum) : item.soldNum != null) return false;
+        if (detailUrl != null ? !detailUrl.equals(item.detailUrl) : item.detailUrl != null) return false;
+        if (userId != null ? !userId.equals(item.userId) : item.userId != null) return false;
+        return nickName != null ? nickName.equals(item.nickName) : item.nickName == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getId() != null ? getId().hashCode() : 0;
-        result = 31 * result + (getTitle() != null ? getTitle().hashCode() : 0);
-        result = 31 * result + (getRawTitle() != null ? getRawTitle().hashCode() : 0);
-        result = 31 * result + (getItemIoc() != null ? getItemIoc().hashCode() : 0);
-        result = 31 * result + (getPicUrl() != null ? getPicUrl().hashCode() : 0);
-        result = 31 * result + (getCuPrice() != null ? getCuPrice().hashCode() : 0);
-        result = 31 * result + (getOriPrice() != null ? getOriPrice().hashCode() : 0);
-        result = 31 * result + (getSoldNum() != null ? getSoldNum().hashCode() : 0);
-        result = 31 * result + (getDetailUrl() != null ? getDetailUrl().hashCode() : 0);
-        result = 31 * result + (getUserId() != null ? getUserId().hashCode() : 0);
-        result = 31 * result + (getNickName() != null ? getNickName().hashCode() : 0);
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + id.hashCode();
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + (rawTitle != null ? rawTitle.hashCode() : 0);
+        result = 31 * result + (itemIoc != null ? itemIoc.hashCode() : 0);
+        result = 31 * result + (picUrl != null ? picUrl.hashCode() : 0);
+        result = 31 * result + (cuPrice != null ? cuPrice.hashCode() : 0);
+        result = 31 * result + (viewFee != null ? viewFee.hashCode() : 0);
+        result = 31 * result + (oriPrice != null ? oriPrice.hashCode() : 0);
+        result = 31 * result + (soldNum != null ? soldNum.hashCode() : 0);
+        result = 31 * result + (detailUrl != null ? detailUrl.hashCode() : 0);
+        result = 31 * result + (userId != null ? userId.hashCode() : 0);
+        result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
         return result;
     }
-
 
     @Override
     public String toString() {
         return "Item{" +
-                "id='" + id + '\'' +
+                "type='" + type + '\'' +
+                ", id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", rawTitle='" + rawTitle + '\'' +
                 ", itemIoc='" + itemIoc + '\'' +
                 ", picUrl='" + picUrl + '\'' +
                 ", cuPrice='" + cuPrice + '\'' +
+                ", viewFee='" + viewFee + '\'' +
                 ", oriPrice='" + oriPrice + '\'' +
                 ", soldNum='" + soldNum + '\'' +
                 ", detailUrl='" + detailUrl + '\'' +

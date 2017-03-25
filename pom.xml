@@ -8,7 +8,6 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<title>bug</title>
 	<description>Demo project for Spring Boot</description>
 
 	<parent>
@@ -97,7 +96,6 @@
 	<repositories>
 		<repository>
 			<id>spring-snapshots</id>
-			<title>Spring Snapshots</title>
 			<url>https://repo.spring.io/snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
@@ -105,7 +103,6 @@
 		</repository>
 		<repository>
 			<id>spring-milestones</id>
-			<title>Spring Milestones</title>
 			<url>https://repo.spring.io/milestone</url>
 			<snapshots>
 				<enabled>false</enabled>
@@ -116,7 +113,6 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>spring-snapshots</id>
-			<title>Spring Snapshots</title>
 			<url>https://repo.spring.io/snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
@@ -124,7 +120,6 @@
 		</pluginRepository>
 		<pluginRepository>
 			<id>spring-milestones</id>
-			<title>Spring Milestones</title>
 			<url>https://repo.spring.io/milestone</url>
 			<snapshots>
 				<enabled>false</enabled>

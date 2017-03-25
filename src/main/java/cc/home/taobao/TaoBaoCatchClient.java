@@ -1,0 +1,180 @@
+package cc.home.taobao;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.*;
+
+/**
+ * Created by cheng on 2017/3/24 0024.
+ */
+@RestController
+@RequestMapping("taobao")
+public class TaoBaoCatchClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaoBaoCatchClient.class);
+
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    private static String url_perfix =
+            "https://s.taobao.com/search?q=";
+    private static String url_sufix = "&imgfile=&commend=all&ssid=s5-e&search_type=item&sourceId=tb.index" +
+            "&spm=a21bo.50862.201856-taobao-item.1&ie=utf8&initiative_id=tbindexz_20170324&bcoffset=2" +
+            "&ntoffset=2&p4ppushleft=1%2C48&s=";
+
+    private Semaphore semaphore = new Semaphore(Math.max(1, Runtime.getRuntime().availableProcessors()));
+
+    private ScheduledThreadPoolExecutor executor =
+            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors());
+
+    private ItemQueen<String> itemTypes = new ItemQueen();
+
+    private LinkedList<Future<String>> futures =
+            new LinkedList<>();
+
+    @Scheduled(fixedRate = 5000)
+    private void checkResult() {
+        for (Future<String> future : futures) {
+            if (future.isDone()) {
+                try {
+                    if (itemTypes.size() > 0) {
+                        doGetGoods(itemTypes.pop());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+    }
+
+    @RequestMapping(value = "type", method = RequestMethod.GET)
+    public String addType(@RequestParam(value = "type") String type) {
+        try {
+            itemTypes.push(type);
+            return "success";
+        } catch (Exception e) {
+            return "error";
+        }
+    }
+
+    private synchronized void checkTypeExistAndDo() throws IOException {
+        if (itemTypes.size() > 0) {
+            doGetGoods(itemTypes.pop());
+        }
+    }
+
+    public void doGetGoods(String type) {
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        for (int a = 44; ; a = a + 44) {
+            try {
+                HttpGet httpGet = new HttpGet(url_perfix + type + url_sufix + a);
+                HttpResponse httpResponse = httpClient.execute(httpGet);
+                String html = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+                Document htmlDocument = Jsoup.parse(html);
+                Elements gPageConfig = htmlDocument.head().getElementsByTag("script");
+                Element scriptElement = gPageConfig.get(gPageConfig.size() - 1);
+                String scriptString = scriptElement.outerHtml();
+                scriptString = scriptString.substring(scriptString.indexOf("{"), scriptString.lastIndexOf(";"));
+                JSONObject jsonArray = JSONObject.fromObject(scriptString);
+                JSONArray items = jsonArray.getJSONObject("mods").getJSONObject("itemlist")
+                        .getJSONObject("data")
+                        .getJSONArray("auctions");
+                for (Object obj : items) {
+                    List<Item> itemList = new ArrayList<>();
+                    try {
+                        Item item = new Item();
+                        JSONObject itemJson = JSONObject.fromObject(obj);
+                        String id = itemJson.getString("nid");
+                        long exist = mongoTemplate.count(new Query(new Criteria("id")
+                                .is(id)), Item.class);
+                        if (exist > 0) {
+                            continue;
+                        }
+                        String picUrl = itemJson.getString("pic_url");
+                        String title = itemJson.getString("title");
+                        String rawTitle = itemJson.getString("raw_title");
+                        String itemIoc = itemJson.getString("item_loc");
+                        String userId = itemJson.getString("user_id");
+                        String soldNum = itemJson.getString("view_sales");
+                        soldNum = soldNum.substring(0, soldNum.indexOf("人"));
+                        String nick = itemJson.getString("nick");
+                        String price = itemJson.getString("view_price");
+                        String viewFee = itemJson.getString("view_fee");
+                        String detailUrl = itemJson.getString("detail_url");
+                        item.setId(id);
+                        item.setPicUrl(picUrl);
+                        item.setTitle(title);
+                        item.setRawTitle(rawTitle);
+                        item.setItemIoc(itemIoc);
+                        item.setUserId(userId);
+                        item.setSoldNum(soldNum);
+                        item.setNickName(nick);
+                        item.setCuPrice(price);
+                        item.setViewFee(viewFee);
+                        item.setDetailUrl(detailUrl);
+                        item.setType(type);
+                        itemList.add(item);
+                        LOGGER.info(item.toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        continue;
+                    }
+                    mongoTemplate.insert(itemList,Item.class);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                break;
+            }
+        }
+        semaphore.release();
+        System.out.println("finish get items of type :" + type);
+    }
+
+
+    class ItemQueen<T> extends ConcurrentLinkedDeque<T> {
+        @Override
+        public void push(T o) {
+            super.push(o);
+            if (itemTypes != null && itemTypes.size() > 0) {
+                if (semaphore.tryAcquire()) {
+                    String type = itemTypes.pop();
+                    Callable callable = (Callable<String>) () -> {
+                        doGetGoods(type);
+                        return type;
+                    };
+                    Future future = executor.submit(callable);
+                    futures.add(future);
+                }
+            }
+        }
+    }
+}
