@@ -68,7 +68,7 @@ public class TaoBaoCatchClient {
             if (future.isDone()) {
                 try {
                     if (itemTypes.size() > 0) {
-                        doGetGoods(itemTypes.pop());
+                        execCall(itemTypes.pop());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -179,15 +179,18 @@ public class TaoBaoCatchClient {
             super.push(o);
             if (itemTypes != null && itemTypes.size() > 0) {
                 if (semaphore.tryAcquire()) {
-                    String type = itemTypes.pop();
-                    Callable callable = (Callable<String>) () -> {
-                        doGetGoods(type);
-                        return type;
-                    };
-                    Future future = executor.submit(callable);
-                    futures.add(future);
+                    execCall(itemTypes.pop());
                 }
             }
         }
+    }
+
+    private void execCall(String type) {
+        Callable callable = (Callable<String>) () -> {
+            doGetGoods(type);
+            return type;
+        };
+        Future future = executor.submit(callable);
+        futures.add(future);
     }
 }
