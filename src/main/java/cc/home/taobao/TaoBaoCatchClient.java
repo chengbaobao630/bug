@@ -2,6 +2,8 @@ package cc.home.taobao;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.ansj.splitWord.analysis.ToAnalysis;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -14,9 +16,8 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +42,9 @@ public class TaoBaoCatchClient {
 
     @Autowired
     MongoTemplate mongoTemplate;
+
+//    @Autowired
+//    RedisTemplate redisTemplate;
 
     private static String url_perfix =
             "https://s.taobao.com/search?q=";
@@ -72,8 +75,24 @@ public class TaoBaoCatchClient {
                 }
             }
         }
+    }
 
+    @RequestMapping(value = "split",method = RequestMethod.GET)
+    public String spiltTitle(){
+        List<Item> items = mongoTemplate.find(new Query().with(new PageRequest(1, 10)), Item.class);
+        for (Item item : items) {
+            String s = ToAnalysis.parse(item.getTitle()).toStringWithOutNature();
+            for (String s1 : s.split(",")) {
+                if (StringUtils.isNotEmpty(s1) &&
+                        !".".equalsIgnoreCase(s1) &&
+                        !"。".equalsIgnoreCase(s1)){
+                    this.itemTypes.push(s1);
+                }
+            }
 
+        }
+
+        return "success";
     }
 
     @RequestMapping(value = "type", method = RequestMethod.GET)
@@ -83,12 +102,6 @@ public class TaoBaoCatchClient {
             return "success";
         } catch (Exception e) {
             return "error";
-        }
-    }
-
-    private synchronized void checkTypeExistAndDo() throws IOException {
-        if (itemTypes.size() > 0) {
-            doGetGoods(itemTypes.pop());
         }
     }
 
