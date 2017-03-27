@@ -15,7 +15,7 @@ public class TBTest {
 
     private static int times = 0;
 
-    private String[] types = {"啤酒", "花生米", "鲍鱼"};
+    private String[] types = {"电脑"};
 
 
 
@@ -34,7 +34,7 @@ public class TBTest {
 
     @Test
     public void readFromFile() {
-        File file = new File("/home/cc/桌面/test");
+        File file = new File("C:\\Users\\cheng\\Desktop\\新建文本文档.txt");
         try {
             BufferedReader reader =
                     new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -59,8 +59,8 @@ public class TBTest {
     }
 
     private boolean sendRequest(String ss) throws IOException {
+        if (StringUtils.isBlank(ss.trim())) return true;
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-        if (StringUtils.isEmpty(ss)) return true;
         if (ss.contains("\t")){
             ss = ss.replaceAll("\t","");
         }

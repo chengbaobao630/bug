@@ -4,16 +4,16 @@ spring:
     profiles:
           active:
     datasource:
-            url: jdbc:mysql://localhost:3306/spider?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
+            url: jdbc:mysql://192.168.200.130:3306/spider?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
             username: root
             password: root
             driverClassName: com.mysql.jdbc.Driver
     data:
             mongodb:
-                    host: localhost
+                    host: 192.168.200.130
                     database: items
     redis:
-            host: localhost
+            host: 192.168.200.130
             port: 6379
             pool:
                   max-idle: 8
@@ -21,7 +21,7 @@ spring:
                   max-active: 8
                   max-wait: -1
 logging:
-  file: /usr/local/pro/logs/spider.log
+  file: C:\\Temp\\spider.log
 
 
 

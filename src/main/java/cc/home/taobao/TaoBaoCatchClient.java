@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,8 +44,8 @@ public class TaoBaoCatchClient {
     @Autowired
     MongoTemplate mongoTemplate;
 
-//    @Autowired
-//    RedisTemplate redisTemplate;
+    @Autowired
+    RedisTemplate redisTemplate;
 
     private static String url_perfix =
             "https://s.taobao.com/search?q=";
@@ -62,13 +63,20 @@ public class TaoBaoCatchClient {
     private LinkedList<Future<String>> futures =
             new LinkedList<>();
 
+
+    private void setRedis(){
+//        redisTemplate.en
+    }
+
     @Scheduled(fixedRate = 5000)
     private void checkResult() {
         for (Future<String> future : futures) {
             if (future.isDone()) {
+                futures.removeFirst();
                 try {
                     if (itemTypes.size() > 0) {
-                        execCall(itemTypes.pop());
+                        LOGGER.info("current itemTypes is :" + itemTypes);
+                        execCall(itemTypes.pollLast());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -106,7 +114,7 @@ public class TaoBaoCatchClient {
 
     public void doGetGoods(String type) {
         HttpClient httpClient = HttpClientBuilder.create().build();
-        for (int a = 44; ; a = a + 44) {
+        for (int a = 44;; a = a + 44) {
             try {
                 HttpGet httpGet = new HttpGet(url_perfix + type + url_sufix + a);
                 HttpResponse httpResponse = httpClient.execute(httpGet);
@@ -178,18 +186,20 @@ public class TaoBaoCatchClient {
             super.push(o);
             if (itemTypes != null && itemTypes.size() > 0) {
                 if (semaphore.tryAcquire()) {
-                    execCall(itemTypes.pop());
+                    execCall(itemTypes.pollLast());
                 }
             }
         }
     }
 
     private void execCall(String type) {
+        LOGGER.info("execCall type :" + type );
         Callable callable = (Callable<String>) () -> {
             doGetGoods(type);
             return type;
         };
         Future future = executor.submit(callable);
         futures.add(future);
+        LOGGER.info("futures size :" + futures.size() );
     }
 }
