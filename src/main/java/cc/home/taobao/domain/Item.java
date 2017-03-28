@@ -1,15 +1,19 @@
-package cc.home.taobao;
+package cc.home.taobao.domain;
 
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.hibernate.annotations.Type;
+
+import javax.persistence.*;
 
 /**
  * Created by cheng on 2017/3/24 0024.
  */
-@Document
+@Table(name = "item")
+@Entity(name = "item")
 public class Item {
 
     private String type;
 
+    @Id
     private String id;
 
     private String title;
@@ -28,6 +32,8 @@ public class Item {
 
     private String soldNum;
 
+    @Lob
+    @Column(columnDefinition="TEXT")
     private String detailUrl;
 
     private String userId;

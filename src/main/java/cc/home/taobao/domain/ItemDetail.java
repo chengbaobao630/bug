@@ -1,5 +1,6 @@
-package cc.home.taobao;
+package cc.home.taobao.domain;
 
+import cc.home.taobao.domain.Item;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;

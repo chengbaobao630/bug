@@ -1,5 +1,8 @@
-package cc.home.taobao;
+package cc.home.taobao.web;
 
+import cc.home.taobao.dao.ItemRepo;
+import cc.home.taobao.domain.Item;
+import cc.home.taobao.domain.MyPage;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.ansj.splitWord.analysis.ToAnalysis;
@@ -16,6 +19,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -37,12 +41,12 @@ import java.util.concurrent.*;
  */
 @RestController
 @RequestMapping("taobao")
-public class TaoBaoCatchClient {
+public class TaoBaoCatchController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaoBaoCatchClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaoBaoCatchController.class);
 
     @Autowired
-    MongoTemplate mongoTemplate;
+    ItemRepo itemRepo;
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -77,6 +81,8 @@ public class TaoBaoCatchClient {
                     if (itemTypes.size() > 0) {
                         LOGGER.info("current itemTypes is :" + itemTypes);
                         execCall(itemTypes.pollLast());
+                    }else {
+                        semaphore.release();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -86,9 +92,9 @@ public class TaoBaoCatchClient {
     }
 
     @RequestMapping(value = "split",method = RequestMethod.GET)
-    public String spiltTitle(){
-        List<Item> items = mongoTemplate.find(new Query().with(new PageRequest(1, 10)), Item.class);
-        for (Item item : items) {
+    public String spiltTitle(Integer page,Integer size){
+        Page<Item> items = itemRepo.findAll(new MyPage(page,size));
+        for (Item item : items.getContent()) {
             String s = ToAnalysis.parse(item.getTitle()).toStringWithOutNature();
             for (String s1 : s.split(",")) {
                 if (StringUtils.isNotEmpty(s1) &&
@@ -134,8 +140,7 @@ public class TaoBaoCatchClient {
                         Item item = new Item();
                         JSONObject itemJson = JSONObject.fromObject(obj);
                         String id = itemJson.getString("nid");
-                        long exist = mongoTemplate.count(new Query(new Criteria("id")
-                                .is(id)), Item.class);
+                        long exist = itemRepo.countById(id);
                         if (exist > 0) {
                             continue;
                         }
@@ -168,14 +173,13 @@ public class TaoBaoCatchClient {
                         e.printStackTrace();
                         continue;
                     }
-                    mongoTemplate.insert(itemList,Item.class);
+                    itemRepo.save(itemList);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
             }
         }
-        semaphore.release();
         System.out.println("finish get items of type :" + type);
     }
 
