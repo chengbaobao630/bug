@@ -10,9 +10,17 @@
 
     <springProfile name="default">
         <property name="loggingRoot" value="c:\\Temp\\spider\\"/>
+        <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <Pattern>.%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %n</Pattern>
+            </encoder>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>info</level>
+            </filter>
+        </appender>
     </springProfile>
     <springProfile name="dev">
-        <property name="loggingRoot" value="c:\\Temp\\spider\\"/>
+        <property name="loggingRoot" value="/usr/local/pro/logs/"/>
     </springProfile>
     <springProfile name="test">
         <property name="loggingRoot" value="/opt/shopGuide_log/"/>
@@ -45,16 +53,6 @@
         <logger name="org.springboot.sample" level="INFO"/>
     </springProfile>
 
-
-
-    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <Pattern>.%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %n</Pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>info</level>
-        </filter>
-    </appender>
 
     <root level="info" additivity="false">
         <appender-ref ref="dailyRollingFileAppender"/>

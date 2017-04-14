@@ -20,10 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,7 +100,6 @@ public class TaoBaoCatchController {
                     this.itemTypes.push(s1);
                 }
             }
-
         }
         return "success";
     }
@@ -118,7 +114,7 @@ public class TaoBaoCatchController {
         }
     }
 
-    public void doGetGoods(String type) {
+    private void doGetGoods(String type) {
         HttpClient httpClient = HttpClientBuilder.create().build();
         for (int a = 44;; a = a + 44) {
             try {
@@ -180,7 +176,7 @@ public class TaoBaoCatchController {
                 break;
             }
         }
-        System.out.println("finish get items of type :" + type);
+        LOGGER.info("finish get items of type :" + type);
     }
 
 
@@ -205,5 +201,13 @@ public class TaoBaoCatchController {
         Future future = executor.submit(callable);
         futures.add(future);
         LOGGER.info("futures size :" + futures.size() );
+    }
+
+
+    public static void main(String[] args) {
+        File file=new File("D:\\");
+        System.out.println(file.getTotalSpace()/1024/1024/1024);
+        System.out.println(file.getUsableSpace()/1024/1024/1024);
+        System.out.println(file.getFreeSpace()/1024/1024/1024);
     }
 }

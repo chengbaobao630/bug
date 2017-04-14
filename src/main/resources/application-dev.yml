@@ -2,7 +2,7 @@ server:
         port : 7022
 spring:
     profiles:
-          active: dev
+          active:
     datasource:
 #            url: jdbc:mysql://192.168.200.129:3306/spider?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
             url: jdbc:postgresql://192.168.200.129:5432/spider

@@ -5,6 +5,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Test;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.ResourceLoader;
 
 import java.io.*;
 
@@ -33,8 +35,9 @@ public class TBTest {
     }
 
     @Test
-    public void readFromFile() {
-        File file = new File("C:\\Users\\cheng\\Desktop\\新建文本文档.txt");
+    public void readFromFile() throws IOException {
+        ResourceLoader loader=new ClassPathXmlApplicationContext();
+        File file = new File(loader.getResource("/新建文本文档.txt").getURI());
         try {
             BufferedReader reader =
                     new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -64,7 +67,7 @@ public class TBTest {
         if (ss.contains("\t")){
             ss = ss.replaceAll("\t","");
         }
-        HttpGet httpGet = new HttpGet("http://localhost:7022/taobao/type?type=" + ss.trim());
+        HttpGet httpGet = new HttpGet("http://localhost:7000/taobao/type?type=" + ss.trim());
         httpClient.execute(httpGet);
         System.out.println(times++);
         return false;
