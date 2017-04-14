@@ -166,7 +166,7 @@ public class TaoBaoCatchController {
                         itemList.add(item);
                         LOGGER.info(item.toString());
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOGGER.error(e.getLocalizedMessage());
                         continue;
                     }
                     itemRepo.save(itemList);
