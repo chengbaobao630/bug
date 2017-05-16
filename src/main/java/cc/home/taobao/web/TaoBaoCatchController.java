@@ -169,7 +169,7 @@ public class TaoBaoCatchController {
                         LOGGER.error(e.getLocalizedMessage());
                         continue;
                     }
-                    itemRepo.save(itemList);
+                    itemRepo.saveAll(itemList);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
