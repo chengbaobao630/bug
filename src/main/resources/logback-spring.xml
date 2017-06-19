@@ -3,7 +3,7 @@
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
     <logger name="org.springframework.web" level="INFO"/>
     <logger name="org.springboot.sample" level="TRACE"/>
-    <logger name="org.apache.ibatis" level="DEBUG"/>
+    <logger name="org.apache.ibatis" level="DEBUG"/>SD7gg
 
     <logger name="cc.home" level="DEBUG"/>
 
@@ -20,13 +20,13 @@
         </appender>
     </springProfile>
     <springProfile name="dev">
-        <property name="loggingRoot" value="/usr/local/pro/logs/"/>
+        <property name="loggingRoot" value="/home/cheng/develop/logs/"/>
     </springProfile>
     <springProfile name="test">
-        <property name="loggingRoot" value="/opt/shopGuide_log/"/>
+        <property name="loggingRoot" value="/home/cheng/develop/logs/"/>
     </springProfile>
     <springProfile name="prd">
-        <property name="loggingRoot" value="/opt/shopGuide_log/" />
+        <property name="loggingRoot" value="/home/cheng/develop/logs/" />
     </springProfile>
 
 

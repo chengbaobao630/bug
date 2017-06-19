@@ -1,18 +1,18 @@
 package cc.home.taobao.domain;
 
-import org.hibernate.annotations.Type;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
 
-import javax.persistence.*;
 
 /**
  * Created by cheng on 2017/3/24 0024.
  */
-@Table(name = "item")
-@Entity(name = "item")
+@Document(indexName="tb-item",type="article",indexStoreType="fs",shards=5,replicas=1,refreshInterval="-1")
 public class Item {
 
     private String type;
 
+//    @Id
     @Id
     private String id;
 
@@ -32,8 +32,8 @@ public class Item {
 
     private String soldNum;
 
-    @Lob
-    @Column(columnDefinition="TEXT")
+//    @Lob
+//    @Column(columnDefinition="TEXT")
     private String detailUrl;
 
     private String userId;
@@ -146,10 +146,9 @@ public class Item {
     }
 
     private String dueWithTaoBaoTag(String ori) {
-        ori = ori.replaceAll("\\\\","")
-                .replaceAll("\"","");
         return ori == null || "null".equalsIgnoreCase(ori)
-                ? "" : ori;
+                ? "" : ori.replaceAll("\\\\","")
+                .replaceAll("\"","");
     }
 
     @Override

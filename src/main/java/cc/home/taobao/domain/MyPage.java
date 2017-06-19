@@ -47,7 +47,7 @@ public class MyPage implements Pageable {
 
     @Override
     public Sort getSort() {
-        return new Sort(direction,sortBy);
+        return Sort.unsorted();
     }
 
     @Override

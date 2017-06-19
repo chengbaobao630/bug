@@ -1,12 +1,11 @@
 package cc.home.taobao.web;
 
-import cc.home.taobao.dao.ItemRepo;
 import cc.home.taobao.domain.Item;
-import cc.home.taobao.domain.MyPage;
+import cc.home.taobao.service.ItemService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.ansj.splitWord.analysis.ToAnalysis;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -20,7 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,10 +43,7 @@ public class TaoBaoCatchController {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaoBaoCatchController.class);
 
     @Autowired
-    ItemRepo itemRepo;
-
-    @Autowired
-    RedisTemplate redisTemplate;
+    private ItemService  itemService;
 
     private static String url_perfix =
             "https://s.taobao.com/search?q=";
@@ -90,7 +87,7 @@ public class TaoBaoCatchController {
 
     @RequestMapping(value = "split",method = RequestMethod.GET)
     public String spiltTitle(Integer page,Integer size){
-        Page<Item> items = itemRepo.findAll(new MyPage(page,size));
+        Page<Item> items = itemService.findAll(new PageRequest(page,size));
         for (Item item : items.getContent()) {
             String s = ToAnalysis.parse(item.getTitle()).toStringWithOutNature();
             for (String s1 : s.split(",")) {
@@ -116,6 +113,13 @@ public class TaoBaoCatchController {
 
     private void doGetGoods(String type) {
         HttpClient httpClient = HttpClientBuilder.create().build();
+        StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
+        for (StackTraceElement traceElement : stackTrace) {
+            traceElement.getClassName();
+            traceElement.getMethodName();
+            traceElement.getLineNumber();
+        }
+
         for (int a = 44;; a = a + 44) {
             try {
                 HttpGet httpGet = new HttpGet(url_perfix + type + url_sufix + a);
@@ -136,10 +140,10 @@ public class TaoBaoCatchController {
                         Item item = new Item();
                         JSONObject itemJson = JSONObject.fromObject(obj);
                         String id = itemJson.getString("nid");
-                        long exist = itemRepo.countById(id);
-                        if (exist > 0) {
-                            continue;
-                        }
+//                        long exist = esRepo.countById(id);
+//                        if (exist > 0) {
+//                            continue;
+//                        }
                         String picUrl = itemJson.getString("pic_url");
                         String title = itemJson.getString("title");
                         String rawTitle = itemJson.getString("raw_title");
@@ -169,7 +173,7 @@ public class TaoBaoCatchController {
                         LOGGER.error(e.getLocalizedMessage());
                         continue;
                     }
-                    itemRepo.saveAll(itemList);
+                    itemService.saveAll(itemList);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -210,4 +214,5 @@ public class TaoBaoCatchController {
         System.out.println(file.getUsableSpace()/1024/1024/1024);
         System.out.println(file.getFreeSpace()/1024/1024/1024);
     }
+
 }

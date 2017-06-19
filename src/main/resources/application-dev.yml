@@ -3,20 +3,6 @@ server:
 spring:
     profiles:
           active:
-    datasource:
-#            url: jdbc:mysql://192.168.200.129:3306/spider?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
-            url: jdbc:postgresql://192.168.200.129:5432/spider
-            username: root
-            password: root
-            driverClassName: org.postgresql.Driver
-    data:
-            mongodb:
-                    host: 192.168.200.130
-                    database: items
-    redis:
-            host: 192.168.200.130
-            port: 6379
-            pool:
                   max-idle: 8
                   min-idle: 0
                   max-active: 8
@@ -25,5 +11,12 @@ spring:
       hibernate:
         ddl-auto: none
       show-sql: true
-
-
+    data:
+      elasticsearch:
+        cluster-nodes: 172.19.26.63:9300
+        cluster-name: elasticsearch
+        repositories:
+          enabled: false
+    redis:
+      host: 172.19.26.63
+      port: 6379
