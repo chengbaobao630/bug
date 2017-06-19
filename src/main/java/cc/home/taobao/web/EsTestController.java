@@ -2,6 +2,8 @@ package cc.home.taobao.web;
 
 import cc.home.taobao.domain.Item;
 import cc.home.taobao.service.ItemService;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Max;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 @RestController
@@ -29,21 +29,21 @@ public class EsTestController {
     private static  final Integer MAX_RETRY_TIMES = 3;
 
     @RequestMapping("/index")
-    public String createIndex(HttpServletRequest request, final Item item) {
-        trySaveEs(item,System.currentTimeMillis());
+    public String createIndex(HttpServletRequest request, final Item item,final String callBackUrl) {
+        trySaveEs(item,System.currentTimeMillis(),callBackUrl);
         return "success";
     }
 
-    private void trySaveEs(final Item item, Long timeStamp) {
+    private void trySaveEs(final Item item, Long timeStamp, String callBackUrl) {
         LinkedList<Item> items = new LinkedList<Item>(){
             {
                 add(item);
             }
         };
-        trySaveEsBatch(items,timeStamp);
+        trySaveEsBatch(items,timeStamp,callBackUrl);
     }
 
-    private void trySaveEsBatch(LinkedList<Item> items, Long timeStamp) {
+    private void trySaveEsBatch(LinkedList<Item> items, Long timeStamp, String callBackUrl) {
         try {
             String redisKey = createKeys(items, timeStamp);
             Integer times = (Integer) redisTemplate.opsForValue().get(redisKey);
@@ -56,10 +56,16 @@ public class EsTestController {
                 redisTemplate.opsForValue().set(redisKey, times + 1);
             }
             itemService.saveAll(items);
+            callBack(callBackUrl);
         } catch (Exception e) {
             log.error("trySaveEsBatch due to error", e);
-            trySaveEsBatch(items,timeStamp);
+            trySaveEsBatch(items,timeStamp, callBackUrl);
         }
+    }
+
+    private void callBack(String callBackUrl) {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+
     }
 
     private void doWithError(LinkedList<Item> items, Long timeStamp) {
